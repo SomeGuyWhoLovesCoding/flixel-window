@@ -1,0 +1,12 @@
+{
+  "name": "flixel-window",
+  "url" : "https://github.com/SomeGuyWhoLovesCoding/flixel-window/",
+  "license": "MIT",
+  "tags": ["system", "useless"],
+  "description": "A UI library that you can do anything with. (This is a beta)",
+  "version": "1.1.0-beta",
+  "classPath": "src/",
+  "releasenote": "Customizable Windows",
+  "contributors": ["SomeGuyWhoLikesFNF"],
+  "main": "Main"
+}
