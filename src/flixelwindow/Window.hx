@@ -1,5 +1,7 @@
 package flixelwindow;
 
+import flixel.FlxCamera;
+import flixel.group.FlxGroup;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.FlxState;
@@ -8,7 +10,29 @@ import flixel.ui.FlxButton;
 import flixel.util.FlxColor;
 import lime.app.Application;
 
-class Window extends FlxState {
+class FlixelWindow extends FlxState {
+	var backgroundSpr:FlxSprite;
+	var flixelWindow:Window;
+	private var windowCaption:FlxCamera;
+
+    override function create() {
+		FlxG.cameras.setDefaultDrawTarget(FlxG.camera, true);
+		windowCaption = new FlxCamera(0, 0, FlxG.width, FlxG.height, 1);
+		FlxG.cameras.add(windowCaption, true);
+		this.cameras = [windowCaption];
+
+		backgroundSpr = new FlxSprite(1, 30).loadGraphic("assets/preview.png");
+		backgroundSpr.setGraphicSize(FlxG.width, FlxG.height);
+		backgroundSpr.updateHitbox();
+		add(backgroundSpr);
+
+        flixelWindow = new Window();
+		flixelWindow.cameras = [windowCaption];
+        add(flixelWindow);
+    }
+}
+
+class Window extends FlxSprite {
 	// Window outline
 	var outline1:FlxSprite;
 	var outline2:FlxSprite;
@@ -23,19 +47,28 @@ class Window extends FlxState {
 	private var titleBarColor:Null<FlxColor>;
 	private var titleBarTextColor:Null<FlxColor>;
 
-	var colorID:Int = 6;
+	var colorID:Int = 0;
 
 	// Window icon
-	var windowIcon:FlxSprite;
+	public var windowIcon:FlxSprite;
     
     // Window Buttons
-    var minimizeButton:FlxButton;
-	var maximizeButton:FlxButton;
-	var closeButton:FlxButton;
+    public var minimizeButton:FlxButton;
+	public var maximizeButton:FlxButton;
+	public var closeButton:FlxButton;
 
 	var windowType:Null<Int> = 0;
 
-	override public function create() {
+	// Initialize a FlxGroup because there are variables in a FlxSprite extension
+	@:noStack private var windowGrp:FlxGroup;
+
+	public function new() {
+		Application.current.window.width = 1282;
+		Application.current.window.height = 752;
+
+		windowGrp = new FlxGroup();
+		FlxG.state.add(windowGrp);
+
 		Application.current.window.borderless = true;
 		Application.current.window.y = 149;
 
@@ -45,28 +78,28 @@ class Window extends FlxState {
 		// Window outline
 		outline1 = new FlxSprite(0, 0).makeGraphic(1, FlxG.height, FlxColor.GRAY);
 		outline1.alpha = 1/5*2;
-		add(outline1);
+		windowGrp.add(outline1);
 		outline2 = new FlxSprite(FlxG.width - 1, 0).makeGraphic(1, FlxG.height, FlxColor.GRAY);
 		outline2.alpha = 1/5*2;
-		add(outline2);
+		windowGrp.add(outline2);
 		outline3 = new FlxSprite(0, FlxG.height - 1).makeGraphic(FlxG.width, 1, FlxColor.GRAY);
 		outline3.alpha = 1/5*2;
-		add(outline3);
+		windowGrp.add(outline3);
 		outline4 = new FlxSprite(0, 0).makeGraphic(FlxG.width, 1, FlxColor.GRAY);
 		outline4.alpha = 1/5*2;
-		add(outline4);
+		windowGrp.add(outline4);
 
 		// Title Bar
 		titleBarSpr = new FlxSprite(1, 1).makeGraphic(FlxG.width - 2, 30, titleBarColor);
-		add(titleBarSpr);
+		windowGrp.add(titleBarSpr);
 		windowIcon = new FlxSprite(10, 8).loadGraphic("assets/icon.png");
 		// Resize the icon to 16 pixels in case it's too big or small
 		windowIcon.setGraphicSize(16, 16);
 		windowIcon.antialiasing = true;
-		add(windowIcon);
+		windowGrp.add(windowIcon);
 		titleBarText = new FlxText(windowIcon.width + 10, windowIcon.y - 3, FlxG.width - 2, titleBarName, 13);
 		titleBarText.setFormat(titleBarFont, 13, titleBarTextColor != null ? titleBarTextColor : FlxColor.BLACK);
-		add(titleBarText);
+		windowGrp.add(titleBarText);
 
         // Window Buttons
 		closeButton = new FlxButton(FlxG.width - 46, 1, "", function() {
@@ -75,17 +108,17 @@ class Window extends FlxState {
 			#end
 		});
 		closeButton.loadGraphic("assets/buttons/exit.png", true, 45, 29, true);
-		add(closeButton);
+		windowGrp.add(closeButton);
 		maximizeButton = new FlxButton(closeButton.x - 45, 1, "", function() {
 			FlxG.fullscreen = !FlxG.fullscreen;
 		});
 		maximizeButton.loadGraphic("assets/buttons/maximize-1.png", true, 45, 29, true);
-		add(maximizeButton);
+		windowGrp.add(maximizeButton);
 		/*minimizeButton = new FlxButton(maximizeButton.x - 45, 1, "", function() {
 			// Might be possible but Idk
 		});
 		minimizeButton.loadGraphic("assets/buttons/minimize.png", true, 45, 29, false);
-		add(minimizeButton);*/
+		windowGrp.add(minimizeButton);*/
 
 		FlxG.mouse.useSystemCursor = true;
 
@@ -131,7 +164,7 @@ class Window extends FlxState {
 		setTitleBarColor(colorID);
 		setTitleBarName('Project Showdown Funk (BETA)');
 
-		super.create();
+		super();
 	}
 
 	override public function update(elapsed:Float) {
@@ -154,9 +187,10 @@ class Window extends FlxState {
 			} else {
 				colorID++;
 			}
-			#if sys Sys.command('nircmd.exe savescreenshot "screenshot.png"'); #end
+			//#if sys Sys.command('nircmd.exe savescreenshot "screenshot.png"'); #end
 			setTitleBarColor(colorID);
 		}
+		setTitleBarColor(colorID);
 		//setType(0);
 		//getType();
 	}
@@ -230,9 +264,9 @@ class Window extends FlxState {
 		}
 		
 		colorID = id;
-		remove(titleBarSpr);
+		windowGrp.remove(titleBarSpr);
 		titleBarSpr = new FlxSprite(1, 1).makeGraphic(FlxG.width - 2, 30, titleBarColor);
-		add(titleBarSpr);
+		windowGrp.add(titleBarSpr);
 	}
 
 	/**
